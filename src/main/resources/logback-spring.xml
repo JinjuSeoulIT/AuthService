@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Properties>
+        <Property name="LOG_DIR">logs</Property>
+    </Properties>
+
+    <Appenders>
+        <!-- 콘솔 -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [%c{30}] %m%n"/>
+        </Console>
+
+        <!-- 파일 (롤링) -->
+        <RollingFile name="File"
+                     fileName="${LOG_DIR}/app.log"
+                     filePattern="${LOG_DIR}/app-%d{yyyyMMdd}.log.gz">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [%c{30}] %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+        </RollingFile>
+
+        <!-- SQL 전용 콘솔 -->
+        <Console name="SqlConsole" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} %m%n"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <!-- 너 패키지 -->
+        <Logger name="com.example.joung" level="info" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
+        </Logger>
+
+        <!-- ✅ log4jdbc SQL -->
+        <!-- 핵심: 얘네 이름이 log4jdbc가 찍는 카테고리 -->
+        <Logger name="jdbc.sqlonly" level="info" additivity="false">
+            <AppenderRef ref="SqlConsole"/>
+        </Logger>
+        <Logger name="jdbc.sqltiming" level="off"/>
+        <Logger name="jdbc.audit" level="off"/>
+        <Logger name="jdbc.connection" level="off"/>
+        <Logger name="jdbc.resultset" level="off"/>
+        <Logger name="jdbc.resultsettable" level="info" additivity="false">
+            <AppenderRef ref="SqlConsole"/>
+        </Logger>
+
+        <!-- 스프링은 에러만 -->
+        <Logger name="org.springframework" level="error"/>
+
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>
