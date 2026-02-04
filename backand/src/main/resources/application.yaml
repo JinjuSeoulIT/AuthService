@@ -1,9 +1,0 @@
-spring:
-  session:
-    store-type: redis
-  data:
-    redis:
-      host: localhost
-      port: 6379
-
-#컨테이너용
