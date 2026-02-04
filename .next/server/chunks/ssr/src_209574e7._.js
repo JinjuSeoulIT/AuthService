@@ -1,3 +1,0 @@
-module.exports=[22166,a=>{"use strict";var b=a.i(14174);let c=b.useSelector;a.s(["useAppDispatch",0,()=>(0,b.useDispatch)(),"useAppSelector",0,c])},18112,a=>{"use strict";var b=a.i(87924),c=a.i(22166),d=a.i(39890);a.s(["default",0,({userId:a})=>{let e=(0,c.useAppDispatch)(),{loading:f,error:g}=(0,c.useAppSelector)(a=>a.member);return(0,b.jsxs)("div",{style:{maxWidth:420},children:[(0,b.jsx)("h2",{children:"회원 삭제(탈퇴)"}),(0,b.jsx)("button",{onClick:()=>{f||confirm("정말 탈퇴할까? (복구 불가)")&&e((0,d.deleteMemberRequest)())},disabled:f,children:f?"삭제 중...":"탈퇴하기"}),g&&(0,b.jsxs)("p",{style:{color:"crimson"},children:["에러: ",g]})]})}])}];
-
-//# sourceMappingURL=src_209574e7._.js.map
