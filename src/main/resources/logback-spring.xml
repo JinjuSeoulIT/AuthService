@@ -1,56 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN">
-    <Properties>
-        <Property name="LOG_DIR">logs</Property>
-    </Properties>
+<configuration debug="true">
 
-    <Appenders>
-        <!-- 콘솔 -->
-        <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [%c{30}] %m%n"/>
-        </Console>
+    <timestamp key="bySecond" datePattern="yyyyMMdd'T'HHmmss"/>
 
-        <!-- 파일 (롤링) -->
-        <RollingFile name="File"
-                     fileName="${LOG_DIR}/app.log"
-                     filePattern="${LOG_DIR}/app-%d{yyyyMMdd}.log.gz">
-            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %5p [%c{30}] %m%n"/>
-            <Policies>
-                <TimeBasedTriggeringPolicy interval="1"/>
-            </Policies>
-        </RollingFile>
+    <!-- 1) 일반 콘솔 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm} %5p [%c{30}] %m%n</pattern>
+        </encoder>
+    </appender>
 
-        <!-- SQL 전용 콘솔 -->
-        <Console name="SqlConsole" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d{HH:mm:ss.SSS} %m%n"/>
-        </Console>
-    </Appenders>
+    <!-- 2) SQL 전용 콘솔 (P6Spy) -->
+    <appender name="SQL_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm} %m%n</pattern>
+        </encoder>
+    </appender>
 
-    <Loggers>
-        <!-- 너 패키지 -->
-        <Logger name="com.example.joung" level="info" additivity="false">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="File"/>
-        </Logger>
+    <!-- ✅ docker가 아닐 때만 파일 롤링(윈도우 로컬용) -->
+    <springProfile name="!docker">
+        <!-- 로컬 기본값(윈도우) -->
+        <property name="LOG_DIR" value="${LOG_DIR:-C:/logs/logback}"/>
 
-        <!-- ✅ log4jdbc SQL -->
-        <!-- 핵심: 얘네 이름이 log4jdbc가 찍는 카테고리 -->
-        <Logger name="jdbc.sqlonly" level="info" additivity="false">
-            <AppenderRef ref="SqlConsole"/>
-        </Logger>
-        <Logger name="jdbc.sqltiming" level="off"/>
-        <Logger name="jdbc.audit" level="off"/>
-        <Logger name="jdbc.connection" level="off"/>
-        <Logger name="jdbc.resultset" level="off"/>
-        <Logger name="jdbc.resultsettable" level="info" additivity="false">
-            <AppenderRef ref="SqlConsole"/>
-        </Logger>
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <!-- ✅ 여기서 C:\ 하드코딩 제거 -->
+            <file>${LOG_DIR}/log-${bySecond}.txt</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_DIR}/app-%d{yyyyMMdd}.log.gz</fileNamePattern>
+                <maxHistory>14</maxHistory>
+            </rollingPolicy>
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm} %5p [%c{30}] %m%n</pattern>
+            </encoder>
+        </appender>
 
-        <!-- 스프링은 에러만 -->
-        <Logger name="org.springframework" level="error"/>
+        <!-- ✅ 내 패키지 로그는 콘솔 + 파일 -->
+        <logger name="com.example.joung" level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </logger>
+    </springProfile>
 
-        <Root level="info">
-            <AppenderRef ref="Console"/>
-        </Root>
-    </Loggers>
-</Configuration>
+    <!-- ✅ docker에서는 파일로그 없이 콘솔만 -->
+    <springProfile name="docker">
+        <logger name="com.example.joung" level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+    </springProfile>
+
+    <!-- ✅ P6Spy SQL 로그 -->
+    <logger name="p6spy" level="INFO" additivity="false">
+        <appender-ref ref="SQL_CONSOLE"/>
+    </logger>
+
+    <!-- 스프링 로그는 너무 많으면 조절 -->
+    <logger name="org.springframework" level="INFO"/>
+
+    <!-- Root -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>

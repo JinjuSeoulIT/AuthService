@@ -1,4 +1,9 @@
 package session.member.service.SecurityService;
+public interface SecurityService {
 
-public class SecurityService {
+
+    String encode(String rawPassword);
+
+    boolean matches(String rawPassword, String encodedPassword);
+
 }

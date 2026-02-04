@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import session.member.dto.onboarding.OnboardingStatusResponseDTO;
-import session.member.mapper.OnboardingMapper.OnboardingMapper;
+import session.member.mapper.Onboarding.OnboardingMapper;
 
 
 @Service
@@ -18,6 +18,8 @@ public class OnboardingServiceImpl implements OnboardingService {
     public OnboardingStatusResponseDTO getStatus(long userId) {
         Long authenticationId = onboardingMapper.selectAuthenticationIdByUserId(userId);
 
+
+        
         if (authenticationId == null) {
             return new OnboardingStatusResponseDTO(false, null);
         }

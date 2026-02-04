@@ -13,9 +13,7 @@ import lombok.Data;
 //**회원가입(용)** 응답전용(Res) 프론트 DTO (출력) 보내기
 //서버 내부에서 JPA 요청에 쓰이도록 가공
 
-public class SignupResponseDTO {
-
-
+public class UserResponseDTO {
 
 
     private Long userId;

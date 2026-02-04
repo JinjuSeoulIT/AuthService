@@ -1,15 +1,11 @@
-package session.member.service;
+package session.member.service.JpaService;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import session.member.dto.membership.Request.AuthenticationRequestDTO;
 import session.member.dto.membership.Request.UserRequestDTO;
-import session.member.entity.AuthenticationEntity;
 import session.member.entity.UserEntity;
-import session.member.mapstruct.Request.AuthenticationReqMapStruct;
 import session.member.mapstruct.Request.UserReqMapStruct;
-import session.member.repository.AuthenticationRepository;
 import session.member.repository.UserRepository;
 
 
@@ -21,24 +17,19 @@ public class JpaUserServiceImpl implements JpaUserService {
 
 
     private final UserRepository userRepository;
-    private final AuthenticationRepository authenticationRepository;
-
     private final UserReqMapStruct userReqMapStruct;
-    private final AuthenticationReqMapStruct authenticationReqMapStruct;
+
+
     /// ///////////////////////////////////////////////////////////
-
-
-
 
     //회원가입 트랙잭션
     //추가 정보
     //새 엔티티는 영속성 컨텍스트에 없음 (그래서 이건 따로 수정이랑 달리 세이브포인트로 만들어 놓음)
     @Override
     @Transactional
-    public Long signupWithAuthentication(UserRequestDTO userReq,           //평문 ID/PW 입력용
-                                         AuthenticationRequestDTO authReq, //상세 입력용
-                                         String passwordHash) {            //비밀번호 해시
-
+    public Long createLoginId(UserRequestDTO userReq,           //평문 ID/PW 입력용
+//                                         AuthenticationRequestDTO authReq, //상세 입력용 (이전 회원가입 지금은 필요없음)
+                              String passwordHash) {            //비밀번호 해시
         //아이디 맵스테이트 (여기부터 ID/PW/ 트랙잭션처리)
         UserEntity user = userReqMapStruct.toEntity(userReq);
         // 1) user 맵스테이트를 처리했기때문에 따로 겟을 안불러옴
@@ -49,11 +40,10 @@ public class JpaUserServiceImpl implements JpaUserService {
         // 1) 먼저 user 저장 (login_id 확실히 DB에 들어감)
         UserEntity savedUser = userRepository.save(user);
         //여기까지 저장후  뒤에 만약 실패하면 롤백
-
 /////////////////////////////////////////////////////////////////////////////////////////////////
-
+        //상세구현시  여기서부터 시작 //
         //상세정보 맵스테이트 (여기부터 상세정보 트랙잭션처리)
-        AuthenticationEntity auth = authenticationReqMapStruct.toEntity(authReq);
+//        AuthenticationEntity auth = authenticationReqMapStruct.toEntity(authReq);
         //초기구상 맵스테이트 없을때
 //        auth.setRealName(req.getRealName());
 //        auth.setPhone(req.getPhone());
@@ -65,52 +55,49 @@ public class JpaUserServiceImpl implements JpaUserService {
 //        auth.setAddress2(req.getAddress2());
 //        auth.setNationCode(req.getNationCode());
         // 3) FK 주인(auth)에 저장된 user 연결
-        auth.setUser(savedUser);
-        // (양방향이면 권장)
-        savedUser.setAuthenticationEntity(auth);
-        //이 한 줄로 UserEntity까지 자동 저장
-
-        // 4)AuthenticationEntity.user 관계에 cascade = PERSIST or ALL이 정확히 걸려 있어서 동시저장가능
-        authenticationRepository.save(auth);
-
-
+//        auth.setUser(savedUser);
+//        // (양방향이면 권장)
+//        savedUser.setAuthenticationEntity(auth);
+//        //이 한 줄로 UserEntity까지 자동 저장
+//
+//        // 4)AuthenticationEntity.user 관계에 cascade = PERSIST or ALL이 정확히 걸려 있어서 동시저장가능
+//        authenticationRepository.save(auth);
         //그후 유저아이디도 저장 (유저테이블에도 연관관계이용)
         return savedUser.getUserId();
     }
+}
 
-
-
-
-    //수정 정보  (지금은 상세만 구현)
-    @Transactional
-    @Override
-    public void updateAuthentication(Long userId, AuthenticationRequestDTO authReq) {
-
-        //레포메서드에서 가져옴
-        AuthenticationEntity auth = authenticationRepository.findOneByUser_UserId(userId);
-        if (auth == null) {
-            throw new RuntimeException("회원정보가 없습니다." + userId);
-        }
-
-        authenticationReqMapStruct.updateEntity(authReq, auth);
-    }
-
-
-
-        //삭제
-        @Transactional
-        @Override
-        public void deleteUser (Long userId){
-
-        // 1) 인증(자식) 먼저 삭제 (FK 끊기)
-        authenticationRepository.deleteById(userId);
-
-        // 2) 유저(부모) 삭제
-        userRepository.deleteById(userId);
-
-    }
-
-    }
+//
+//    //수정 정보  (지금은 상세만 구현)
+//    @Transactional
+//    @Override
+//    public void updateAuthentication(Long userId, AuthenticationRequestDTO authReq) {
+//
+//        //레포메서드에서 가져옴
+//        AuthenticationEntity auth = authenticationRepository.findOneByUser_UserId(userId);
+//        if (auth == null) {
+//            throw new RuntimeException("회원정보가 없습니다." + userId);
+//        }
+//
+//        authenticationReqMapStruct.updateEntity(authReq, auth);
+//    }
+//
+//
+//
+////        //삭제
+////        @Transactional
+////        @Override
+////        public void deleteUser (Long userId){
+////
+////        // 1) 인증(자식) 먼저 삭제 (FK 끊기)
+////        authenticationRepository.deleteById(userId);
+////
+////        // 2) 유저(부모) 삭제
+////        userRepository.deleteById(userId);
+//
+//    }
+//
+//    }
 
 
 

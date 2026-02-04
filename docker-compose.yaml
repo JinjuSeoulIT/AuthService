@@ -1,9 +1,10 @@
 services:
   redis:
-    image: redis:7
-    container_name: redis-session
+    image: redis:latest
+    container_name: redis-local
+    profiles: ["redis"]   # ✅ 넘버는 나의 해당 컨테이너 이름이라서 확실히 연결시켤로고 같이 해둠
     ports:
-      - "6379:6379"
+      - "6381:6379"
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
@@ -12,3 +13,4 @@ services:
 volumes:
   redis-data:
 
+    #로컬용 리디스 실험용
