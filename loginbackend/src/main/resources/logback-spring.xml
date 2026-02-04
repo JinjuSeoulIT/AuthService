@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true">
+
+    <timestamp key="bySecond" datePattern="yyyyMMdd'T'HHmmss"/>
+
+    <!-- 1) 일반 콘솔 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm} %5p [%c{30}] %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 2) SQL 전용 콘솔 (P6Spy) -->
+    <appender name="SQL_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm} %m%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ✅ docker가 아닐 때만 파일 롤링(윈도우 로컬용) -->
+    <springProfile name="!docker">
+        <!-- 로컬 기본값(윈도우) -->
+        <property name="LOG_DIR" value="${LOG_DIR:-C:/logs/logback}"/>
+
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <!-- ✅ 여기서 C:\ 하드코딩 제거 -->
+            <file>${LOG_DIR}/log-${bySecond}.txt</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_DIR}/app-%d{yyyyMMdd}.log.gz</fileNamePattern>
+                <maxHistory>14</maxHistory>
+            </rollingPolicy>
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm} %5p [%c{30}] %m%n</pattern>
+            </encoder>
+        </appender>
+
+        <!-- ✅ 내 패키지 로그는 콘솔 + 파일 -->
+        <logger name="com.example.joung" level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </logger>
+    </springProfile>
+
+    <!-- ✅ docker에서는 파일로그 없이 콘솔만 -->
+    <springProfile name="docker">
+        <logger name="com.example.joung" level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+    </springProfile>
+
+    <!-- ✅ P6Spy SQL 로그 -->
+    <logger name="p6spy" level="INFO" additivity="false">
+        <appender-ref ref="SQL_CONSOLE"/>
+    </logger>
+
+    <!-- 스프링 로그는 너무 많으면 조절 -->
+    <logger name="org.springframework" level="INFO"/>
+
+    <!-- Root -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>
