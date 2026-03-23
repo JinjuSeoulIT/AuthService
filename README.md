@@ -1,1 +1,1 @@
-# Auth Service\n\nTemporary placeholder README before backend population.
+# AuthService Backend\n\nThis branch now hosts the backend sources that were developed in the portfolio-react/backend module.
