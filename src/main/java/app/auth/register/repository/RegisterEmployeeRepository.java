@@ -36,7 +36,7 @@ public class RegisterEmployeeRepository {
                 """
                 SELECT
                     a.ID AS accountId,
-                    a.USERNAME AS username,
+                    a.LOGIN_ID AS username,
                     e.NAME AS fullName,
                     a.ROLE_CODE AS roleCode,
                     e.STATUS AS status,
@@ -45,7 +45,7 @@ public class RegisterEmployeeRepository {
                     e.PHONE AS phone,
                     e.EMAIL AS email
                 FROM CMH.AUTH_USER a
-                JOIN JCH.EMPLOYEE e ON e.STAFF_ID = a.ID
+                JOIN JCH.EMPLOYEE e ON e.STAFF_ID = a.STAFF_ID
                 WHERE e.STATUS = 'PENDING_APPROVAL'
                 ORDER BY e.CREATED_AT ASC
                 """,

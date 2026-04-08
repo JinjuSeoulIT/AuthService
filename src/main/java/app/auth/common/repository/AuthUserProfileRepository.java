@@ -16,7 +16,11 @@ public class AuthUserProfileRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public AuthUserProfileInfo readProfileInfo(String userId) {
+    public AuthUserProfileInfo readProfileInfo(Long staffId) {
+        if (staffId == null) {
+            return new AuthUserProfileInfo(null, null, null, null);
+        }
+
         List<AuthUserProfileInfo> results = jdbcTemplate.query(
                 """
                 SELECT
@@ -35,7 +39,7 @@ public class AuthUserProfileRepository {
                             resolveDepartmentName(departmentId)
                     );
                 },
-                userId
+                staffId
         );
 
         if (results.isEmpty()) {
@@ -57,14 +61,14 @@ public class AuthUserProfileRepository {
                     SELECT * FROM (
                         SELECT
                             a.ID AS userId,
-                            a.USERNAME AS username,
+                            a.LOGIN_ID AS username,
                             a.ROLE_CODE AS roleCode,
                             e.NAME AS fullName,
                             e.STATUS AS status,
                             e.DEPT_ID AS departmentId
                         FROM CMH.AUTH_USER a
-                        LEFT JOIN JCH.EMPLOYEE e ON e.STAFF_ID = a.ID
-                        ORDER BY a.USERNAME ASC
+                        LEFT JOIN JCH.EMPLOYEE e ON e.STAFF_ID = a.STAFF_ID
+                        ORDER BY a.LOGIN_ID ASC
                     )
                     WHERE ROWNUM <= ?
                     """,
@@ -86,17 +90,17 @@ public class AuthUserProfileRepository {
                 SELECT * FROM (
                     SELECT
                         a.ID AS userId,
-                        a.USERNAME AS username,
+                        a.LOGIN_ID AS username,
                         a.ROLE_CODE AS roleCode,
                         e.NAME AS fullName,
                         e.STATUS AS status,
                         e.DEPT_ID AS departmentId
                     FROM CMH.AUTH_USER a
-                    LEFT JOIN JCH.EMPLOYEE e ON e.STAFF_ID = a.ID
+                    LEFT JOIN JCH.EMPLOYEE e ON e.STAFF_ID = a.STAFF_ID
                     WHERE LOWER(a.ID) LIKE ? ESCAPE '\\'
-                       OR LOWER(a.USERNAME) LIKE ? ESCAPE '\\'
+                       OR LOWER(a.LOGIN_ID) LIKE ? ESCAPE '\\'
                        OR LOWER(NVL(e.NAME, '')) LIKE ? ESCAPE '\\'
-                    ORDER BY a.USERNAME ASC
+                    ORDER BY a.LOGIN_ID ASC
                 )
                 WHERE ROWNUM <= ?
                 """,

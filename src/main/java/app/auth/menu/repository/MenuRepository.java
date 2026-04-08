@@ -29,7 +29,7 @@ public interface MenuRepository extends JpaRepository<AuthMenu, Integer> {
         LEFT JOIN CMH.AUTH_USER_MENU_PERMISSION up
             ON up.USER_ID = u.ID
            AND up.MENU_ID = m.MENU_ID
-        WHERE LOWER(u.USERNAME) = LOWER(:username)
+        WHERE LOWER(u.LOGIN_ID) = LOWER(:username)
           AND NVL(up.CAN_VIEW, NVL(rp.CAN_VIEW, 'N')) = 'Y'
         ORDER BY NVL(m.PATH, '')
         """, nativeQuery = true)
@@ -46,7 +46,7 @@ public interface MenuRepository extends JpaRepository<AuthMenu, Integer> {
         LEFT JOIN CMH.AUTH_USER_MENU_PERMISSION up
             ON up.USER_ID = u.ID
            AND up.MENU_ID = m.MENU_ID
-        WHERE LOWER(u.USERNAME) = LOWER(:username)
+        WHERE LOWER(u.LOGIN_ID) = LOWER(:username)
           AND NVL(up.CAN_VIEW, NVL(rp.CAN_VIEW, 'N')) = 'Y'
         ORDER BY NVL(m.PATH, '')
         """, nativeQuery = true)

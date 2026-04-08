@@ -34,7 +34,7 @@ public class MeServiceImpl implements MeService {
             return null;
         }
 
-        AuthUserProfileInfo profileInfo = authUserProfileRepository.readProfileInfo(account.getId());
+        AuthUserProfileInfo profileInfo = authUserProfileRepository.readProfileInfo(resolveStaffId(account));
         return meMapper.toUserInfo(account, profileInfo);
     }
 
@@ -80,6 +80,26 @@ public class MeServiceImpl implements MeService {
 
         if (!StringUtils.hasText(request.getNewPassword())) {
             throw new IllegalArgumentException("AUTH_NEW_PASSWORD_REQUIRED");
+        }
+    }
+
+    private Long resolveStaffId(AuthAccount account) {
+        if (account == null) {
+            return null;
+        }
+
+        if (account.getStaffId() != null) {
+            return account.getStaffId();
+        }
+
+        if (!StringUtils.hasText(account.getId())) {
+            return null;
+        }
+
+        try {
+            return Long.parseLong(account.getId().trim());
+        } catch (NumberFormatException ignored) {
+            return null;
         }
     }
 }

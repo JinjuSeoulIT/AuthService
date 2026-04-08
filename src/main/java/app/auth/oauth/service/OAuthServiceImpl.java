@@ -139,7 +139,12 @@ public class OAuthServiceImpl implements OAuthService {
             return new AuthUserProfileInfo(account.getFullName(), account.getStatus(), null, null);
         }
 
-        return authUserProfileRepository.readProfileInfo(account.getId());
+        Long staffId = resolveStaffId(account);
+        if (staffId == null) {
+            return new AuthUserProfileInfo(account.getFullName(), account.getStatus(), null, null);
+        }
+
+        return authUserProfileRepository.readProfileInfo(staffId);
     }
 
     private Map<String, Object> createAccessClaims(AuthAccount account,
@@ -290,5 +295,25 @@ public class OAuthServiceImpl implements OAuthService {
         }
 
         return account == null ? null : account.getUsername();
+    }
+
+    private Long resolveStaffId(AuthAccount account) {
+        if (account == null) {
+            return null;
+        }
+
+        if (account.getStaffId() != null) {
+            return account.getStaffId();
+        }
+
+        if (!StringUtils.hasText(account.getId())) {
+            return null;
+        }
+
+        try {
+            return Long.parseLong(account.getId().trim());
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
     }
 }

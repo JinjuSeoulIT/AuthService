@@ -162,7 +162,28 @@ public class LoginServiceImpl implements LoginService {
             return new AuthUserProfileInfo(null, null, null, null);
         }
 
-        return authUserProfileRepository.readProfileInfo(account.getId());
+        Long staffId = resolveStaffId(account);
+        return authUserProfileRepository.readProfileInfo(staffId);
+    }
+
+    private Long resolveStaffId(AuthAccount account) {
+        if (account == null) {
+            return null;
+        }
+
+        if (account.getStaffId() != null) {
+            return account.getStaffId();
+        }
+
+        if (isBlank(account.getId())) {
+            return null;
+        }
+
+        try {
+            return Long.parseLong(account.getId().trim());
+        } catch (NumberFormatException ignored) {
+            return null;
+        }
     }
 
     private Map<String, Object> createAccessClaims(AuthAccount account,
