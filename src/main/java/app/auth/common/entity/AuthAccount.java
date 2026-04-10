@@ -26,7 +26,7 @@ public class AuthAccount {
     private String username;
 
     @Column(name = "STAFF_ID")
-    private Long staffId;
+    private String staffId;
 
     @Transient
     private String fullName;

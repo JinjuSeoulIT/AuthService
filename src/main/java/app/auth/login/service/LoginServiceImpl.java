@@ -25,8 +25,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class LoginServiceImpl implements LoginService {
 
-    private static final String INITIAL_PASSWORD = "1111";
-
     private final JwtTokenProvider jwtTokenProvider;
     private final RegisterAccountRepository registerAccountRepository;
     private final AuthUserProfileRepository authUserProfileRepository;
@@ -45,7 +43,7 @@ public class LoginServiceImpl implements LoginService {
         AuthUserProfileInfo profileInfo = readProfileInfo(account);
         validateAccountStatus(account, profileInfo);
 
-        boolean passwordChangeRequired = PasswordHashUtil.matches(INITIAL_PASSWORD, account.getPasswordHash());
+        boolean passwordChangeRequired = false;
         return issueLoginResult(account, profileInfo, passwordChangeRequired);
     }
 
@@ -82,7 +80,7 @@ public class LoginServiceImpl implements LoginService {
         AuthUserProfileInfo profileInfo = readProfileInfo(account);
         validateAccountStatus(account, profileInfo);
 
-        boolean passwordChangeRequired = PasswordHashUtil.matches(INITIAL_PASSWORD, account.getPasswordHash());
+        boolean passwordChangeRequired = false;
         return rotateLoginResult(account, profileInfo, sid, passwordChangeRequired);
     }
 
@@ -162,11 +160,11 @@ public class LoginServiceImpl implements LoginService {
             return new AuthUserProfileInfo(null, null, null, null);
         }
 
-        Long staffId = resolveStaffId(account);
+        String staffId = resolveStaffId(account);
         return authUserProfileRepository.readProfileInfo(staffId);
     }
 
-    private Long resolveStaffId(AuthAccount account) {
+    private String resolveStaffId(AuthAccount account) {
         if (account == null) {
             return null;
         }
@@ -179,11 +177,7 @@ public class LoginServiceImpl implements LoginService {
             return null;
         }
 
-        try {
-            return Long.parseLong(account.getId().trim());
-        } catch (NumberFormatException ignored) {
-            return null;
-        }
+        return account.getId().trim();
     }
 
     private Map<String, Object> createAccessClaims(AuthAccount account,

@@ -72,6 +72,10 @@ server {
     proxy_pass http://staff-service:8081;
   }
 
+  location ^~ /api/jpa/ {
+    proxy_pass http://staff-service:8081;
+  }
+
   location / {
     proxy_pass http://${FRONTEND_UPSTREAM};
     proxy_http_version 1.1;

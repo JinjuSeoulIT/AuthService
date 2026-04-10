@@ -139,7 +139,7 @@ public class OAuthServiceImpl implements OAuthService {
             return new AuthUserProfileInfo(account.getFullName(), account.getStatus(), null, null);
         }
 
-        Long staffId = resolveStaffId(account);
+        String staffId = resolveStaffId(account);
         if (staffId == null) {
             return new AuthUserProfileInfo(account.getFullName(), account.getStatus(), null, null);
         }
@@ -297,7 +297,7 @@ public class OAuthServiceImpl implements OAuthService {
         return account == null ? null : account.getUsername();
     }
 
-    private Long resolveStaffId(AuthAccount account) {
+    private String resolveStaffId(AuthAccount account) {
         if (account == null) {
             return null;
         }
@@ -310,10 +310,6 @@ public class OAuthServiceImpl implements OAuthService {
             return null;
         }
 
-        try {
-            return Long.parseLong(account.getId().trim());
-        } catch (NumberFormatException ignored) {
-            return null;
-        }
+        return account.getId().trim();
     }
 }

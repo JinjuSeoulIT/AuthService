@@ -16,7 +16,7 @@ public class AuthUserProfileRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public AuthUserProfileInfo readProfileInfo(Long staffId) {
+    public AuthUserProfileInfo readProfileInfo(String staffId) {
         if (staffId == null) {
             return new AuthUserProfileInfo(null, null, null, null);
         }
@@ -29,7 +29,7 @@ public class AuthUserProfileRepository {
                     TO_CHAR(s.STAFF_DEPARTMENT_ID) AS departmentId,
                     d.DEPARTMENT_NAME AS departmentName
                 FROM CMH.STAFF s
-                LEFT JOIN CMH.STAFF_DEPARTMENT d ON d.STAFF_DEPARTMENT_ID = s.STAFF_DEPARTMENT_ID
+                LEFT JOIN CMH.STAFF_DEPARTMENT d ON d.DEPARTMENT_ID = s.STAFF_DEPARTMENT_ID
                 WHERE s.STAFF_ID = ?
                 """,
                 (rs, rowNum) -> {
@@ -72,7 +72,7 @@ public class AuthUserProfileRepository {
                             d.DEPARTMENT_NAME AS departmentName
                         FROM CMH.AUTH_USER a
                         LEFT JOIN CMH.STAFF s ON s.STAFF_ID = a.STAFF_ID
-                        LEFT JOIN CMH.STAFF_DEPARTMENT d ON d.STAFF_DEPARTMENT_ID = s.STAFF_DEPARTMENT_ID
+                        LEFT JOIN CMH.STAFF_DEPARTMENT d ON d.DEPARTMENT_ID = s.STAFF_DEPARTMENT_ID
                         ORDER BY a.LOGIN_ID ASC
                     )
                     WHERE ROWNUM <= ?
@@ -104,7 +104,7 @@ public class AuthUserProfileRepository {
                         d.DEPARTMENT_NAME AS departmentName
                     FROM CMH.AUTH_USER a
                     LEFT JOIN CMH.STAFF s ON s.STAFF_ID = a.STAFF_ID
-                    LEFT JOIN CMH.STAFF_DEPARTMENT d ON d.STAFF_DEPARTMENT_ID = s.STAFF_DEPARTMENT_ID
+                    LEFT JOIN CMH.STAFF_DEPARTMENT d ON d.DEPARTMENT_ID = s.STAFF_DEPARTMENT_ID
                     WHERE LOWER(a.ID) LIKE ? ESCAPE '\\'
                        OR LOWER(a.LOGIN_ID) LIKE ? ESCAPE '\\'
                        OR LOWER(NVL(s.FULL_NAME, '')) LIKE ? ESCAPE '\\'

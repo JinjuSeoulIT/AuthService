@@ -83,7 +83,7 @@ public class MeServiceImpl implements MeService {
         }
     }
 
-    private Long resolveStaffId(AuthAccount account) {
+    private String resolveStaffId(AuthAccount account) {
         if (account == null) {
             return null;
         }
@@ -96,10 +96,6 @@ public class MeServiceImpl implements MeService {
             return null;
         }
 
-        try {
-            return Long.parseLong(account.getId().trim());
-        } catch (NumberFormatException ignored) {
-            return null;
-        }
+        return account.getId().trim();
     }
 }
