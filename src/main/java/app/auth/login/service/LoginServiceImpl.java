@@ -25,8 +25,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class LoginServiceImpl implements LoginService {
 
-    private static final String INITIAL_PASSWORD = "1111";
-
     private final JwtTokenProvider jwtTokenProvider;
     private final RegisterAccountRepository registerAccountRepository;
     private final AuthUserProfileRepository authUserProfileRepository;
@@ -45,7 +43,7 @@ public class LoginServiceImpl implements LoginService {
         AuthUserProfileInfo profileInfo = readProfileInfo(account);
         validateAccountStatus(account, profileInfo);
 
-        boolean passwordChangeRequired = PasswordHashUtil.matches(INITIAL_PASSWORD, account.getPasswordHash());
+        boolean passwordChangeRequired = false;
         return issueLoginResult(account, profileInfo, passwordChangeRequired);
     }
 
@@ -82,7 +80,7 @@ public class LoginServiceImpl implements LoginService {
         AuthUserProfileInfo profileInfo = readProfileInfo(account);
         validateAccountStatus(account, profileInfo);
 
-        boolean passwordChangeRequired = PasswordHashUtil.matches(INITIAL_PASSWORD, account.getPasswordHash());
+        boolean passwordChangeRequired = false;
         return rotateLoginResult(account, profileInfo, sid, passwordChangeRequired);
     }
 
@@ -162,7 +160,24 @@ public class LoginServiceImpl implements LoginService {
             return new AuthUserProfileInfo(null, null, null, null);
         }
 
-        return authUserProfileRepository.readProfileInfo(account.getId());
+        String staffId = resolveStaffId(account);
+        return authUserProfileRepository.readProfileInfo(staffId);
+    }
+
+    private String resolveStaffId(AuthAccount account) {
+        if (account == null) {
+            return null;
+        }
+
+        if (account.getStaffId() != null) {
+            return account.getStaffId();
+        }
+
+        if (isBlank(account.getId())) {
+            return null;
+        }
+
+        return account.getId().trim();
     }
 
     private Map<String, Object> createAccessClaims(AuthAccount account,

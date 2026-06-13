@@ -16,26 +16,33 @@ public class AuthUserProfileRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public AuthUserProfileInfo readProfileInfo(String userId) {
+    public AuthUserProfileInfo readProfileInfo(String staffId) {
+        if (staffId == null) {
+            return new AuthUserProfileInfo(null, null, null, null);
+        }
+
         List<AuthUserProfileInfo> results = jdbcTemplate.query(
                 """
                 SELECT
-                    e.NAME AS fullName,
-                    e.STATUS AS status,
-                    e.DEPT_ID AS departmentId
-                FROM JCH.EMPLOYEE e
-                WHERE e.STAFF_ID = ?
+                    s.FULL_NAME AS fullName,
+                    s.EMPLOYMENT_STATUS AS status,
+                    TO_CHAR(s.STAFF_DEPARTMENT_ID) AS departmentId,
+                    d.DEPARTMENT_NAME AS departmentName
+                FROM CMH.STAFF s
+                LEFT JOIN CMH.STAFF_DEPARTMENT d ON d.DEPARTMENT_ID = s.STAFF_DEPARTMENT_ID
+                WHERE s.STAFF_ID = ?
                 """,
                 (rs, rowNum) -> {
                     String departmentId = rs.getString("departmentId");
+                    String departmentName = rs.getString("departmentName");
                     return new AuthUserProfileInfo(
                             rs.getString("fullName"),
                             rs.getString("status"),
                             departmentId,
-                            resolveDepartmentName(departmentId)
+                            StringUtils.hasText(departmentName) ? departmentName : resolveDepartmentName(departmentId)
                     );
                 },
-                userId
+                staffId
         );
 
         if (results.isEmpty()) {
@@ -57,14 +64,16 @@ public class AuthUserProfileRepository {
                     SELECT * FROM (
                         SELECT
                             a.ID AS userId,
-                            a.USERNAME AS username,
+                            a.LOGIN_ID AS username,
                             a.ROLE_CODE AS roleCode,
-                            e.NAME AS fullName,
-                            e.STATUS AS status,
-                            e.DEPT_ID AS departmentId
+                            s.FULL_NAME AS fullName,
+                            s.EMPLOYMENT_STATUS AS status,
+                            TO_CHAR(s.STAFF_DEPARTMENT_ID) AS departmentId,
+                            d.DEPARTMENT_NAME AS departmentName
                         FROM CMH.AUTH_USER a
-                        LEFT JOIN JCH.EMPLOYEE e ON e.STAFF_ID = a.ID
-                        ORDER BY a.USERNAME ASC
+                        LEFT JOIN CMH.STAFF s ON s.STAFF_ID = a.STAFF_ID
+                        LEFT JOIN CMH.STAFF_DEPARTMENT d ON d.DEPARTMENT_ID = s.STAFF_DEPARTMENT_ID
+                        ORDER BY a.LOGIN_ID ASC
                     )
                     WHERE ROWNUM <= ?
                     """,
@@ -74,7 +83,8 @@ public class AuthUserProfileRepository {
                             rs.getString("roleCode"),
                             rs.getString("fullName"),
                             rs.getString("status"),
-                            rs.getString("departmentId")
+                            rs.getString("departmentId"),
+                            rs.getString("departmentName")
                     ),
                     limit
             );
@@ -86,17 +96,19 @@ public class AuthUserProfileRepository {
                 SELECT * FROM (
                     SELECT
                         a.ID AS userId,
-                        a.USERNAME AS username,
+                        a.LOGIN_ID AS username,
                         a.ROLE_CODE AS roleCode,
-                        e.NAME AS fullName,
-                        e.STATUS AS status,
-                        e.DEPT_ID AS departmentId
+                        s.FULL_NAME AS fullName,
+                        s.EMPLOYMENT_STATUS AS status,
+                        TO_CHAR(s.STAFF_DEPARTMENT_ID) AS departmentId,
+                        d.DEPARTMENT_NAME AS departmentName
                     FROM CMH.AUTH_USER a
-                    LEFT JOIN JCH.EMPLOYEE e ON e.STAFF_ID = a.ID
+                    LEFT JOIN CMH.STAFF s ON s.STAFF_ID = a.STAFF_ID
+                    LEFT JOIN CMH.STAFF_DEPARTMENT d ON d.DEPARTMENT_ID = s.STAFF_DEPARTMENT_ID
                     WHERE LOWER(a.ID) LIKE ? ESCAPE '\\'
-                       OR LOWER(a.USERNAME) LIKE ? ESCAPE '\\'
-                       OR LOWER(NVL(e.NAME, '')) LIKE ? ESCAPE '\\'
-                    ORDER BY a.USERNAME ASC
+                       OR LOWER(a.LOGIN_ID) LIKE ? ESCAPE '\\'
+                       OR LOWER(NVL(s.FULL_NAME, '')) LIKE ? ESCAPE '\\'
+                    ORDER BY a.LOGIN_ID ASC
                 )
                 WHERE ROWNUM <= ?
                 """,
@@ -106,7 +118,8 @@ public class AuthUserProfileRepository {
                         rs.getString("roleCode"),
                         rs.getString("fullName"),
                         rs.getString("status"),
-                        rs.getString("departmentId")
+                        rs.getString("departmentId"),
+                        rs.getString("departmentName")
                 ),
                 likeKeyword,
                 likeKeyword,
@@ -120,14 +133,15 @@ public class AuthUserProfileRepository {
                                              String roleCode,
                                              String fullName,
                                              String status,
-                                             String departmentId) {
+                                             String departmentId,
+                                             String departmentName) {
         return new AuthUserSearchInfo(
                 userId,
                 username,
                 StringUtils.hasText(fullName) ? fullName : username,
                 roleCode,
                 StringUtils.hasText(status) ? status : "INACTIVE",
-                resolveDepartmentName(departmentId)
+                StringUtils.hasText(departmentName) ? departmentName : resolveDepartmentName(departmentId)
         );
     }
 

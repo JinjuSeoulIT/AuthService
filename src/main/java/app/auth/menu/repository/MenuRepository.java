@@ -22,15 +22,21 @@ public interface MenuRepository extends JpaRepository<AuthMenu, Integer> {
             m.CREATED_AT,
             m.UPDATED_AT
         FROM CMH.AUTH_USER u
-        JOIN CMH.MENU m ON m.IS_ACTIVE = 'Y'
+        JOIN CMH.AUTH_MENU m ON m.IS_ACTIVE = 'Y'
         LEFT JOIN CMH.AUTH_ROLE_MENU_PERMISSION rp
             ON rp.ROLE_CODE = u.ROLE_CODE
            AND rp.MENU_ID = m.MENU_ID
         LEFT JOIN CMH.AUTH_USER_MENU_PERMISSION up
             ON up.USER_ID = u.ID
            AND up.MENU_ID = m.MENU_ID
-        WHERE LOWER(u.USERNAME) = LOWER(:username)
-          AND NVL(up.CAN_VIEW, NVL(rp.CAN_VIEW, 'N')) = 'Y'
+        WHERE LOWER(u.LOGIN_ID) = LOWER(:username)
+          AND (
+              CASE
+                  WHEN UPPER(NVL(up.ACCESS_STATE, '')) = 'ALLOW' THEN 'Y'
+                  WHEN UPPER(NVL(up.ACCESS_STATE, '')) = 'DENY' THEN 'N'
+                  ELSE NVL(rp.CAN_ACCESS, 'N')
+              END
+          ) = 'Y'
         ORDER BY NVL(m.PATH, '')
         """, nativeQuery = true)
     List<AuthMenu> findMenusByUsername(@Param("username") String username);
@@ -39,15 +45,21 @@ public interface MenuRepository extends JpaRepository<AuthMenu, Integer> {
         SELECT DISTINCT
             m.PATH
         FROM CMH.AUTH_USER u
-        JOIN CMH.MENU m ON m.IS_ACTIVE = 'Y'
+        JOIN CMH.AUTH_MENU m ON m.IS_ACTIVE = 'Y'
         LEFT JOIN CMH.AUTH_ROLE_MENU_PERMISSION rp
             ON rp.ROLE_CODE = u.ROLE_CODE
            AND rp.MENU_ID = m.MENU_ID
         LEFT JOIN CMH.AUTH_USER_MENU_PERMISSION up
             ON up.USER_ID = u.ID
            AND up.MENU_ID = m.MENU_ID
-        WHERE LOWER(u.USERNAME) = LOWER(:username)
-          AND NVL(up.CAN_VIEW, NVL(rp.CAN_VIEW, 'N')) = 'Y'
+        WHERE LOWER(u.LOGIN_ID) = LOWER(:username)
+          AND (
+              CASE
+                  WHEN UPPER(NVL(up.ACCESS_STATE, '')) = 'ALLOW' THEN 'Y'
+                  WHEN UPPER(NVL(up.ACCESS_STATE, '')) = 'DENY' THEN 'N'
+                  ELSE NVL(rp.CAN_ACCESS, 'N')
+              END
+          ) = 'Y'
         ORDER BY NVL(m.PATH, '')
         """, nativeQuery = true)
     List<String> findMenuPathsByUsername(@Param("username") String username);

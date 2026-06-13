@@ -73,19 +73,59 @@ public class MenuAccessFilter extends OncePerRequestFilter {
         }
 
         String normalized = StringUtils.trimAllWhitespace(requestPath.toLowerCase());
+        String normalizedWithoutApi = stripApiPrefix(normalized);
+        String normalizedCompatibility = toCompatibilityPath(normalizedWithoutApi);
 
         for (String allowed : allowedPaths) {
             if (!StringUtils.hasText(allowed)) {
                 continue;
             }
             String candidate = allowed.toLowerCase();
-            if (normalized.equals(candidate)) {
-                return true;
-            }
-            if (normalized.startsWith(candidate + "/")) {
+            if (matches(normalized, candidate)
+                    || matches(normalizedWithoutApi, candidate)
+                    || matches(normalizedCompatibility, candidate)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private boolean matches(String requestPath, String allowedPath) {
+        if (!StringUtils.hasText(requestPath) || !StringUtils.hasText(allowedPath)) {
+            return false;
+        }
+        if (requestPath.equals(allowedPath)) {
+            return true;
+        }
+        return requestPath.startsWith(allowedPath + "/");
+    }
+
+    private String stripApiPrefix(String path) {
+        if (!StringUtils.hasText(path)) {
+            return path;
+        }
+        if (path.equals("/api")) {
+            return "/";
+        }
+        if (path.startsWith("/api/")) {
+            return path.substring(4);
+        }
+        return path;
+    }
+
+    private String toCompatibilityPath(String path) {
+        if (!StringUtils.hasText(path)) {
+            return path;
+        }
+        if (path.startsWith("/staff/departments")) {
+            return path.replaceFirst("/staff/departments", "/staff/department");
+        }
+        if (path.startsWith("/staff/locations")) {
+            return path.replaceFirst("/staff/locations", "/staff/location");
+        }
+        if (path.startsWith("/jpa/medical-staff")) {
+            return path.replaceFirst("/jpa/medical-staff", "/staff");
+        }
+        return path;
     }
 }

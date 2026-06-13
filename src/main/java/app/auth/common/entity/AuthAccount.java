@@ -21,8 +21,12 @@ public class AuthAccount {
     @Column(name = "ID", nullable = false, length = 20)
     private String id;
 
-    @Column(name = "USERNAME", nullable = false, length = 50)
+    // LOGIN_ID is the actual login account identifier in CMH.AUTH_USER.
+    @Column(name = "LOGIN_ID", nullable = false, length = 50)
     private String username;
+
+    @Column(name = "STAFF_ID")
+    private String staffId;
 
     @Transient
     private String fullName;
